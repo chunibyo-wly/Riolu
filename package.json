@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "convert": "node scripts/convert_data.js"
   },
   "dependencies": {
+    "cli-progress": "^3.11.2",
     "vue": "^3.2.45"
   },
   "devDependencies": {
