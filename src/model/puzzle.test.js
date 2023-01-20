@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "fs";
 import path from "path";
 import { getAllSolutions, mergeDict, Puzzle } from "./puzzle.js";
-import { randomMinMax, shuffle } from "./utils.js";
+import { logGridMap, randomMinMax, shuffle } from "./utils.js";
 
 const DATA = "./data/";
 const data = JSON.parse(readFileSync(path.join(DATA, "data.json"), "utf8"));
@@ -53,5 +53,16 @@ describe("棋盘生成", () => {
       const length = phrases.reduce((a, b) => a + b.length, 0);
       expect(length).toBe(n * n);
     }
+  });
+
+  it("随机填充短语到棋盘", () => {
+    const dict = mergeDict([data["poem"], data["chengyu"]]);
+    const puzzle = new Puzzle(dict, 6);
+    const phrases = puzzle.generatePhraseList();
+    puzzle.randomPhrasePosition(phrases[0]);
+    let tmp = [].concat(...puzzle.gridMap).filter((i) => i.text !== null);
+    expect(tmp.length).toBe(phrases[0].cells.length);
+    expect(tmp.length).toBe(phrases[0].texts.length);
+    logGridMap(puzzle.gridMap);
   });
 });

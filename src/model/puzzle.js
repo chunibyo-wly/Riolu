@@ -1,5 +1,12 @@
 import { randomArray, shuffle } from "./utils";
 
+const DIRECTION = [
+  { x: 0, y: -1 },
+  { x: 0, y: 1 },
+  { x: -1, y: 0 },
+  { x: 1, y: 0 },
+];
+
 export function getAllSolutions(baseNumberList, amount) {
   // 获取所有方案，性能较差
   const result = [];
@@ -58,12 +65,48 @@ export function mergeDict(dictArray) {
 }
 
 export class Cell {
-  constructor(originPos) {
-    this.originPos = originPos;
+  constructor(x, y) {
+    this.x = this.originX = x;
+    this.y = this.originY = y;
     this.text = null;
-
-    // 前一个，后一个
     // 这个字对应的句子
+    this.phrase = null;
+    // 前一个，后一个
+    this.from = null;
+    this.next = null;
+  }
+
+  set(text, phrase) {
+    this.text = text;
+    this.phrase = phrase;
+  }
+
+  link_from(from) {
+    this.from = from;
+    from.next = this;
+  }
+
+  unset() {
+    this.text = this.phrase = this.from = this.next = null;
+  }
+
+  empty() {
+    return this.text === null;
+  }
+
+  getNext(gridMap) {
+    return shuffle(
+      DIRECTION.flatMap((direction) => {
+        const [x, y, l] = [
+          direction.x + this.x,
+          direction.y + this.y,
+          gridMap.length,
+        ];
+        return 0 <= x && x < l && 0 <= y && y < l && gridMap[x][y].empty()
+          ? gridMap[x][y]
+          : [];
+      })
+    );
   }
 }
 
@@ -74,6 +117,19 @@ export class Phrase {
     this.length = texts.length;
     this.cells = [];
   }
+
+  assignCell(cell) {
+    const n = this.cells.length;
+    cell.set(this.texts[n], this);
+    if (n !== 0) cell.link_from(this.cells[n - 1]);
+
+    this.cells.push(cell);
+    return this.cells.length === this.length;
+  }
+
+  unAssign() {
+    this.cells.pop().unset();
+  }
 }
 
 export class Puzzle {
@@ -83,7 +139,13 @@ export class Puzzle {
     this.edgeLength = n;
     this.size = n * n;
 
-    this.gridMap = Array.from(Array(n), (e) => Array(n).fill(0));
+    this.gridMap = Array.from(Array(n), (e) => Array(n).fill(null));
+    for (let i = 0; i < n; ++i) {
+      for (let j = 0; j < n; ++j) {
+        this.gridMap[i][j] = new Cell(i, j);
+      }
+    }
+
     // 这个问题类型下的所有方案
     this.solutions = null;
     // 当前组成谜题的 短语phrase
@@ -91,6 +153,7 @@ export class Puzzle {
   }
 
   generatePhraseList() {
+    // 生成用于组成谜题的所有短语
     const keys = Object.keys(this.phraseDict);
     const solution = getRandomOneSolution(keys, this.size);
     this.phraseArray = solution.map(
@@ -100,8 +163,32 @@ export class Puzzle {
     return this.phraseArray;
   }
 
-  randomPhrasePosition() {
+  randomPhrasePosition(phrase) {
+    // 根据 gridmap 的样子随机将 短语 填充上去
+    function randomDFS(current, gridMap) {
+      // 随机方向的 dfs
+      if (phrase.assignCell(current)) return true;
+
+      const nexts = current.getNext(gridMap);
+      for (let i = 0; i < nexts.length; ++i) {
+        if (randomDFS(nexts[i], gridMap)) {
+          return true;
+        }
+      }
+
+      phrase.unAssign();
+      return false;
+    }
+
     // 将 cell 指向 phrase
+    const shuffleMap = shuffle([].concat(...this.gridMap));
+    for (let i = 0; i < shuffleMap.length; ++i) {
+      if (
+        randomDFS(this.gridMap[shuffleMap[i].x][shuffleMap[i].y], this.gridMap)
+      )
+        return phrase;
+    }
+    return null;
   }
 
   erasePhrase() {
