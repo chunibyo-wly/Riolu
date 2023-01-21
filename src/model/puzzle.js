@@ -117,6 +117,20 @@ export class Cell {
   select() {
     this.selected = !this.selected;
   }
+
+  unselect() {
+    this.selected = false;
+  }
+
+  distance(cell) {
+    return Math.abs(cell.x - this.x) + Math.abs(cell.y - this.y) <= 1;
+  }
+
+  isLinked() {
+    if (this.from === null) this.from = this;
+    if (this.next === null) this.next = this;
+    return this.distance(this.from) && this.distance(this.next);
+  }
 }
 
 export class Phrase {
@@ -175,7 +189,7 @@ export class Puzzle {
         // TODO: 去重
         (i) => new Phrase(randomArray(this.phraseDict[i]))
       )
-      .sort((a, b) => a.texts > b.texts);
+      .sort((a, b) => a.texts.length > b.texts.length);
     return this.phraseArray;
   }
 
@@ -217,15 +231,12 @@ export class Puzzle {
     }
   }
 
-  erasePhrase(phrase) {
-    // TODO: 重构逻辑
-    // 移动 cell 位置
-    const n = this.edgeLength;
-
-    phrase.cells.forEach((cell) => {
+  eraseCells(cells) {
+    cells.forEach((cell) => {
       this.gridMap[cell.x][cell.y] = new Cell(cell.x, cell.y, true);
     });
 
+    const n = this.edgeLength;
     // 沿 y 轴遍历每一行
     for (let j = 0; j < n; ++j) {
       for (let i = n - 1; i >= 0; --i) {
@@ -255,6 +266,10 @@ export class Puzzle {
     }
 
     this.cellPosUpdate();
+  }
+
+  erasePhrase(phrase) {
+    this.eraseCells(phrase.cells);
   }
 
   refresh() {
@@ -287,5 +302,34 @@ export class Puzzle {
 
   clickCell(cell) {
     cell.select();
+    const selectedCells = this.gridMap.flat().filter((cell) => cell.selected);
+    if (selectedCells.length <= 1) return;
+
+    if (!this.checkAvailable(selectedCells)) {
+      this.unselectAll();
+    } else if (this.completeOnePhrase(selectedCells)) {
+      this.eraseCells(selectedCells);
+      if (this.gridMap.flat().filter((cell) => cell.used()).length === 0) {
+        this.refresh();
+      }
+    }
+  }
+
+  unselectAll() {
+    this.gridMap.flat().map((cell) => cell.unselect());
+  }
+
+  checkAvailable(cells) {
+    const phrase = cells[0].phrase;
+    for (let i = 1; i < cells.length; ++i) {
+      if (!phrase.cells.includes(cells[i])) return false;
+    }
+    return true;
+  }
+
+  completeOnePhrase(cells) {
+    const phrase = cells[0].phrase;
+    if (phrase.length !== cells.length) return false;
+    return cells.filter((cell) => !cell.isLinked()).length === 0;
   }
 }

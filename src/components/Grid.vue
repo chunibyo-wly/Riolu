@@ -11,11 +11,10 @@ import {
 
 const keys = shuffle(Object.keys(DATA));
 const dict = mergeDict(keys.map((key) => DATA[key]));
-const puzzle = ref(new Puzzle(dict, 9));
+const puzzle = ref(new Puzzle(dict, 4));
 puzzle.value.refresh();
 logGridMap(puzzle.value.gridMap);
-
-console.log(puzzle.value);
+console.log(puzzle.value.phraseArray);
 
 function gridClick(cell) {
   puzzle.value.clickCell(cell);
@@ -27,6 +26,7 @@ function gridClick(cell) {
     <div
       v-for="cell in puzzle.gridMap.flat()"
       :class="['grid-item', cell.selected && 'selected-item']"
+      :style="[!cell.used() && 'visibility:hidden']"
     >
       <div class="single-character" @click="gridClick(cell)">
         {{ cell.text }}
