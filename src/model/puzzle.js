@@ -64,6 +64,8 @@ export class Cell {
     // 前一个，后一个
     this.from = null;
     this.next = null;
+
+    this.selected = false;
   }
 
   set(text, phrase) {
@@ -110,6 +112,10 @@ export class Cell {
           : [];
       })
     );
+  }
+
+  select() {
+    this.selected = !this.selected;
   }
 }
 
@@ -277,5 +283,9 @@ export class Puzzle {
       });
     });
     this.cellPosUpdate();
+  }
+
+  clickCell(cell) {
+    cell.select();
   }
 }

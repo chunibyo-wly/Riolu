@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from "vue";
 import DATA from "../assets/data.json";
 import { Puzzle } from "../model/puzzle.js";
 import {
@@ -10,16 +11,26 @@ import {
 
 const keys = shuffle(Object.keys(DATA));
 const dict = mergeDict(keys.map((key) => DATA[key]));
-let puzzle = new Puzzle(dict, 9);
-puzzle.refresh();
+const puzzle = ref(new Puzzle(dict, 9));
+puzzle.value.refresh();
+logGridMap(puzzle.value.gridMap);
 
-logGridMap(puzzle.gridMap);
+console.log(puzzle.value);
+
+function gridClick(cell) {
+  puzzle.value.clickCell(cell);
+}
 </script>
 
 <template>
   <div class="grid-container">
-    <div v-for="cell in puzzle.gridMap.flat()" class="grid-item">
-      <div class="single-character">{{ cell.text }}</div>
+    <div
+      v-for="cell in puzzle.gridMap.flat()"
+      :class="['grid-item', cell.selected && 'selected-item']"
+    >
+      <div class="single-character" @click="gridClick(cell)">
+        {{ cell.text }}
+      </div>
     </div>
   </div>
 </template>
@@ -30,6 +41,8 @@ logGridMap(puzzle.gridMap);
   grid-template-columns: repeat(v-bind("puzzle.edgeLength"), 1fr);
   grid-gap: 0.5rem;
 }
+
+.selected-item,
 .grid-item {
   background-color: rgb(103, 103, 191);
   aspect-ratio: 1;
@@ -39,6 +52,11 @@ logGridMap(puzzle.gridMap);
   border-radius: 0.3rem;
   border-color: rgb(90, 96, 106);
   border-style: solid;
+}
+
+.selected-item {
+  background-color: rgb(224, 201, 98);
+  border-color: rgb(197, 193, 172);
 }
 
 .single-character {
@@ -51,5 +69,7 @@ logGridMap(puzzle.gridMap);
   height: 100%;
   justify-content: center; /* Align horizontal */
   align-items: center; /* Align vertical */
+
+  user-select: none;
 }
 </style>
