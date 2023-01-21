@@ -31,3 +31,14 @@ export function logGridMap(gridMap) {
   }
   console.table(result);
 }
+
+export function mergeDict(dictArray) {
+  const result = { ...dictArray[0] };
+  for (let i = 1; i < dictArray.length; ++i) {
+    for (let key in dictArray[i]) {
+      if (key in result) result[key] = [...result[key], ...dictArray[i][key]];
+      else result[key] = [...dictArray[i][key]];
+    }
+  }
+  return result;
+}

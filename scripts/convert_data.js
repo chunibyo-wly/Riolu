@@ -3,6 +3,7 @@ import { SingleBar, Presets } from "cli-progress";
 import path from "path";
 
 const DATA = "./data/";
+const OUTPUT = './src/assets/data.json'
 const LOWER_BOUND = 4;
 const UPPER_BOUND = 9;
 const RESULT = {};
@@ -55,7 +56,7 @@ readdirSync("./data/")
 
 console.log(Object.keys(RESULT));
 var jsonContent = JSON.stringify(RESULT);
-writeFile(path.join(DATA, "data.json"), jsonContent, "utf8", function (err) {
+writeFile(OUTPUT, jsonContent, "utf8", function (err) {
   if (err) {
     console.log("An error occured while writing JSON Object to File.");
     return console.log(err);

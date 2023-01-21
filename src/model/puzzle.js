@@ -1,4 +1,4 @@
-import { logGridMap, randomArray, shuffle, swap } from "./utils";
+import { logGridMap, randomArray, shuffle } from "./utils";
 
 const DIRECTION = [
   { x: 0, y: -1 },
@@ -51,17 +51,6 @@ export function getRandomOneSolution(baseNumberList, amount) {
   }
 
   return dfs(amount, []);
-}
-
-export function mergeDict(dictArray) {
-  const result = { ...dictArray[0] };
-  for (let i = 1; i < dictArray.length; ++i) {
-    for (let key in dictArray[i]) {
-      if (key in result) result[key] = [...result[key], ...dictArray[i][key]];
-      else result[key] = [...dictArray[i][key]];
-    }
-  }
-  return result;
 }
 
 export class Cell {

@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "fs";
-import path from "path";
-import { getAllSolutions, mergeDict, Puzzle } from "./puzzle.js";
-import { logGridMap, randomMinMax, shuffle } from "./utils.js";
+import { getAllSolutions, Puzzle } from "./puzzle.js";
+import { logGridMap, randomMinMax, shuffle, mergeDict } from "./utils.js";
 
-const DATA = "./data/";
-const data = JSON.parse(readFileSync(path.join(DATA, "data.json"), "utf8"));
+const data = JSON.parse(readFileSync("./src/assets/data.json"), "utf8");
 
 describe("棋盘生成", () => {
   it("生成不同长度短语填满棋盘的所有方案", () => {
