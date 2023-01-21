@@ -1,4 +1,4 @@
-import { randomArray, shuffle } from "./utils";
+import { logGridMap, randomArray, shuffle, swap } from "./utils";
 
 const DIRECTION = [
   { x: 0, y: -1 },
@@ -65,10 +65,11 @@ export function mergeDict(dictArray) {
 }
 
 export class Cell {
-  constructor(x, y) {
+  constructor(x, y, disable = false) {
     this.x = this.originX = x;
     this.y = this.originY = y;
-    this.text = null;
+    this.text = disable ? -1 : 0;
+
     // 这个字对应的句子
     this.phrase = null;
     // 前一个，后一个
@@ -81,17 +82,30 @@ export class Cell {
     this.phrase = phrase;
   }
 
+  update(x, y) {
+    [this.x, this.y] = [x, y];
+  }
+
   link_from(from) {
     this.from = from;
     from.next = this;
   }
 
   unset() {
-    this.text = this.phrase = this.from = this.next = null;
+    this.text = 0;
+    this.phrase = this.from = this.next = null;
   }
 
   empty() {
-    return this.text === null;
+    return this.text === 0;
+  }
+
+  disabled() {
+    return this.text === -1;
+  }
+
+  used() {
+    return /^[\u4E00-\u9FA5]+$/.test(this.text);
   }
 
   getNext(gridMap) {
@@ -139,12 +153,10 @@ export class Puzzle {
     this.edgeLength = n;
     this.size = n * n;
 
+    this.gravity = { x: 1, y: -1 };
+
     this.gridMap = Array.from(Array(n), (e) => Array(n).fill(null));
-    for (let i = 0; i < n; ++i) {
-      for (let j = 0; j < n; ++j) {
-        this.gridMap[i][j] = new Cell(i, j);
-      }
-    }
+    this.clearGridMap();
 
     // 这个问题类型下的所有方案
     this.solutions = null;
@@ -152,14 +164,23 @@ export class Puzzle {
     this.phraseArray = [];
   }
 
+  clearGridMap() {
+    for (let i = 0; i < this.edgeLength; ++i) {
+      for (let j = 0; j < this.edgeLength; ++j) {
+        this.gridMap[i][j] = new Cell(i, j);
+      }
+    }
+  }
   generatePhraseList() {
     // 生成用于组成谜题的所有短语
     const keys = Object.keys(this.phraseDict);
     const solution = getRandomOneSolution(keys, this.size);
-    this.phraseArray = solution.map(
-      // TODO: 去重
-      (i) => new Phrase(randomArray(this.phraseDict[i]))
-    );
+    this.phraseArray = solution
+      .map(
+        // TODO: 去重
+        (i) => new Phrase(randomArray(this.phraseDict[i]))
+      )
+      .sort((a, b) => a.texts > b.texts);
     return this.phraseArray;
   }
 
@@ -180,8 +201,9 @@ export class Puzzle {
       return false;
     }
 
-    // 将 cell 指向 phrase
-    const shuffleMap = shuffle([].concat(...this.gridMap));
+    const shuffleMap = shuffle(
+      [].concat(...this.gridMap).filter((grid) => grid.empty())
+    );
     for (let i = 0; i < shuffleMap.length; ++i) {
       if (
         randomDFS(this.gridMap[shuffleMap[i].x][shuffleMap[i].y], this.gridMap)
@@ -191,7 +213,80 @@ export class Puzzle {
     return null;
   }
 
-  erasePhrase() {
+  cellPosUpdate() {
+    const n = this.edgeLength;
+    for (let i = 0; i < n; ++i) {
+      for (let j = 0; j < n; ++j) {
+        this.gridMap[i][j].update(i, j);
+      }
+    }
+  }
+
+  erasePhrase(phrase) {
+    // TODO: 重构逻辑
     // 移动 cell 位置
+    const n = this.edgeLength;
+
+    phrase.cells.forEach((cell) => {
+      this.gridMap[cell.x][cell.y] = new Cell(cell.x, cell.y, true);
+    });
+
+    // 沿 y 轴遍历每一行
+    for (let j = 0; j < n; ++j) {
+      for (let i = n - 1; i >= 0; --i) {
+        if (this.gridMap[i][j].disabled()) continue;
+        for (let k = i + 1; k < n; k++) {
+          if (!this.gridMap[k][j].disabled()) break;
+          [this.gridMap[k - 1][j], this.gridMap[k][j]] = [
+            this.gridMap[k][j],
+            this.gridMap[k - 1][j],
+          ];
+        }
+      }
+    }
+
+    // 沿 x 轴遍历每一行
+    for (let i = 0; i < n; ++i) {
+      for (let j = 0; j < n; ++j) {
+        if (this.gridMap[i][j].disabled()) continue;
+        for (let k = j - 1; k >= 0; --k) {
+          if (!this.gridMap[i][k].disabled()) break;
+          [this.gridMap[i][k], this.gridMap[i][k + 1]] = [
+            this.gridMap[i][k + 1],
+            this.gridMap[i][k],
+          ];
+        }
+      }
+    }
+
+    this.cellPosUpdate();
+  }
+
+  refresh() {
+    // TODO: 还会有不可解的情况, 先用工程办法解决
+    let flag = false;
+    let phrases = [];
+    while (!flag) {
+      flag = true;
+      this.clearGridMap();
+
+      phrases = this.generatePhraseList();
+      phrases.forEach((phrase) => {
+        this.randomPhrasePosition(phrase);
+        let tmp = [].concat(...this.gridMap).filter((i) => i.used());
+        flag =
+          flag &&
+          tmp.length === phrase.cells.length &&
+          tmp.length === phrase.texts.length;
+        this.erasePhrase(phrase);
+      });
+    }
+
+    phrases.forEach((phrase) => {
+      phrase.cells.forEach((cell) => {
+        this.gridMap[cell.originX][cell.originY] = cell;
+      });
+    });
+    this.cellPosUpdate();
   }
 }

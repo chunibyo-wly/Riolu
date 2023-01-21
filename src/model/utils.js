@@ -22,13 +22,12 @@ export function shuffle(arr) {
 export function logGridMap(gridMap) {
   const l = gridMap.length;
   const result = new Array(l);
-  let phrase = null;
   for (let i = 0; i < l; ++i) {
     result[i] = gridMap[i].map((grid) => {
-      if (grid.text && grid.text !== -1) phrase = grid.phrase;
+      if (grid.empty()) return "";
+      else if (grid.disabled()) return "❌";
       return grid.text;
     });
   }
   console.table(result);
-  console.log(phrase.texts);
 }
