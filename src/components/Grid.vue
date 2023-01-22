@@ -4,9 +4,10 @@ import DATA from "../assets/data.json";
 import { Puzzle } from "../model/puzzle.js";
 import { shuffle, mergeDict } from "../model/utils.js";
 
-const keys = ['poem', 'chengyu']
+const keys = ["poem", "chengyu"];
 const dict = mergeDict(keys.map((key) => DATA[key]));
 const puzzle = ref(new Puzzle(dict, 6));
+puzzle.value.canDuplicate = false;
 puzzle.value.refresh();
 
 function gridClick(cell) {

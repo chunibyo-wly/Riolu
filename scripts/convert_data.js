@@ -3,12 +3,19 @@ import { SingleBar, Presets } from "cli-progress";
 import path from "path";
 
 const DATA = "./data/";
-const OUTPUT = './src/assets/data.json'
+const OUTPUT = "./src/assets/data.json";
 const LOWER_BOUND = 4;
 const UPPER_BOUND = 9;
 const RESULT = {};
 
-function is_available(str) {
+const CONTRAINT = {
+  animal: 100,
+  chengyu: 100,
+  food: 10,
+  poem: 20,
+};
+
+function is_available(str, number) {
   // 只包含中文
   for (let i = 0; i < str.length; ++i) {
     if (!/^[\u4E00-\u9FA5]+$/.test(str[i])) {
@@ -28,12 +35,16 @@ readdirSync("./data/")
       .trim()
       .split("\n");
 
+    const fileName = file.match(/^THUOCL_(.*)\.txt$/)[1];
     const bar = new SingleBar({}, Presets.shades_classic);
     // 符合条件的存起来
     const newWords = allFileContents.flatMap((line) => {
       bar.increment();
       let tmp = line.split("\t")[0].trim();
-      return is_available(tmp) ? tmp : [];
+      let number = parseInt(line.split("\t")[1]);
+      return is_available(tmp, number) && CONTRAINT[fileName] <= number
+        ? tmp
+        : [];
     });
     bar.stop();
 
@@ -43,7 +54,6 @@ readdirSync("./data/")
       else obj[b.length] = [b];
       return obj;
     }, {});
-    const fileName = file.match(/^THUOCL_(.*)\.txt$/)[1];
     RESULT[fileName] = subResult;
 
     // 计数

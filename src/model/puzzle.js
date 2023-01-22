@@ -181,6 +181,8 @@ export class Puzzle {
     this.solutions = null;
     // 当前组成谜题的 短语phrase
     this.phraseArray = [];
+
+    this.canDuplicate = true;
   }
 
   clearGridMap() {
@@ -194,10 +196,22 @@ export class Puzzle {
     // 生成用于组成谜题的所有短语
     const keys = Object.keys(this.phraseDict);
     const solution = getRandomOneSolution(keys, this.size);
+    const tmp = new Set();
+    let texts = "";
     this.phraseArray = solution
       .map(
         // TODO: 去重
-        (i) => new Phrase(randomArray(this.phraseDict[i]))
+        (i) => {
+          do {
+            texts = randomArray(this.phraseDict[i]);
+          } while (
+            !this.canDuplicate &&
+            this.edgeLength <= 6 &&
+            [...texts].some((item) => tmp.has(item))
+          );
+          [...texts].forEach((item) => tmp.add(item));
+          return new Phrase(texts);
+        }
       )
       .sort((a, b) => b.length - a.length);
     return this.phraseArray;
