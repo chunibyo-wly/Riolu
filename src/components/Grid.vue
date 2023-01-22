@@ -2,19 +2,12 @@
 import { ref } from "vue";
 import DATA from "../assets/data.json";
 import { Puzzle } from "../model/puzzle.js";
-import {
-  shuffle,
-  mergeDict,
-  randomMinMax,
-  logGridMap,
-} from "../model/utils.js";
+import { shuffle, mergeDict } from "../model/utils.js";
 
-const keys = shuffle(Object.keys(DATA));
+const keys = ['poem', 'chengyu']
 const dict = mergeDict(keys.map((key) => DATA[key]));
-const puzzle = ref(new Puzzle(dict, 4));
+const puzzle = ref(new Puzzle(dict, 6));
 puzzle.value.refresh();
-logGridMap(puzzle.value.gridMap);
-console.log(puzzle.value.phraseArray);
 
 function gridClick(cell) {
   puzzle.value.clickCell(cell);

@@ -30,6 +30,7 @@ export function logGridMap(gridMap) {
     });
   }
   console.table(result);
+  return result;
 }
 
 export function mergeDict(dictArray) {

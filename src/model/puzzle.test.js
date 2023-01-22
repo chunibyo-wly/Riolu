@@ -52,31 +52,17 @@ describe("棋盘生成", () => {
       expect(length).toBe(n * n);
     }
   });
+});
 
-  it("随机填充短语到棋盘", () => {
-    const dict = mergeDict([data["poem"], data["chengyu"]]);
-    const puzzle = new Puzzle(dict, 10);
-    const phrases = puzzle.generatePhraseList();
-    const phrase = phrases[0];
+it("生成题目", () => {
+  let keys = Object.keys(data);
+  let puzzle = null;
+  for (let i = 0; i < 100; ++i) {
+    keys = shuffle(keys);
+    const dict = mergeDict(keys.map((key) => data[key]));
+    puzzle = new Puzzle(dict, randomMinMax(5, 12));
+    puzzle.refresh();
 
-    puzzle.randomPhrasePosition(phrase);
-    // logGridMap(puzzle.gridMap);
-    let tmp = [].concat(...puzzle.gridMap).filter((i) => i.used());
-    expect(tmp.length).toBe(phrase.cells.length);
-    expect(tmp.length).toBe(phrase.texts.length);
-    puzzle.erasePhrase(phrase);
-    // logGridMap(puzzle.gridMap);
-  });
-
-  it("生成题目", () => {
-    let keys = Object.keys(data);
-    let puzzle = null;
-    for (let i = 0; i < 100; ++i) {
-      keys = shuffle(keys);
-      const dict = mergeDict(keys.map((key) => data[key]));
-      puzzle = new Puzzle(dict, randomMinMax(5, 6));
-      puzzle.refresh();
-    }
-    logGridMap(puzzle.gridMap);
-  });
+    expect(puzzle.checkGridMapAvailable()).toBe(true);
+  }
 });
