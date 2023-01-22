@@ -67,6 +67,7 @@ export class Cell {
 
     this.selected = false;
     this.changed = false;
+    this.highlighted = false;
   }
 
   set(text, phrase) {
@@ -396,6 +397,16 @@ export class Puzzle {
   completeOnePhrase(cells) {
     const phrase = cells[0].phrase;
     if (phrase.length !== cells.length) return false;
-    return cells.every((cell) => cell.isLinked());
+    return cells.every((cell) => cell.used() && cell.isLinked());
+  }
+
+  getHint() {
+    let num = this.gridMap.flat().filter((cell) => cell.used()).length;
+    let i = 0;
+    while (num < this.edgeLength * this.edgeLength) {
+      num += this.phraseArray[i].length;
+      i++;
+    }
+    this.phraseArray[i].cells.forEach((cell) => (cell.highlighted = true));
   }
 }

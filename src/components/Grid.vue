@@ -19,7 +19,11 @@ function gridClick(cell) {
   <div class="grid-container">
     <div
       v-for="cell in puzzle.gridMap.flat()"
-      :class="['grid-item', cell.selected && 'selected-item']"
+      :class="[
+        'grid-item',
+        cell.highlighted && 'highlighted-item',
+        cell.selected && 'selected-item',
+      ]"
       :style="[!cell.used() && 'visibility:hidden']"
     >
       <div class="single-character" @click="gridClick(cell)">
@@ -27,6 +31,7 @@ function gridClick(cell) {
       </div>
     </div>
   </div>
+  <button @click="puzzle.getHint()">提示</button>
 </template>
 
 <style scoped>
@@ -36,6 +41,7 @@ function gridClick(cell) {
   grid-gap: 0.5rem;
 }
 
+.highlighted-item,
 .selected-item,
 .grid-item {
   background-color: rgb(103, 103, 191);
@@ -48,11 +54,15 @@ function gridClick(cell) {
   border-style: solid;
 }
 
+.highlighted-item {
+  background-color: rgb(225, 111, 128);
+  border-color: rgb(211, 177, 207);
+}
+
 .selected-item {
   background-color: rgb(224, 201, 98);
   border-color: rgb(197, 193, 172);
 }
-
 .single-character {
   color: white;
   font-size: 4vw;
