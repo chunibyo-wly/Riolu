@@ -17,6 +17,10 @@
 2. 每次在新生成的棋盘上使用随机 dfs 可以得到一条随机变化的长线。
 3. 为了保证有解写了一堆条件检查。
 
+## 感谢
+1. 字体: https://github.com/lxgw/LxgwWenKai
+2. 数据: http://thuocl.thunlp.org/
+
 # Vue 3 + Vite
 
 This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
